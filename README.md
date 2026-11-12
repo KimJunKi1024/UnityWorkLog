@@ -24,11 +24,11 @@ Unity에서 **Window → Package Manager → 왼쪽 위 + → Add package from g
 https://github.com/KimJunKi1024/UnityWorkLog.git
 ```
 
-특정 버전으로 고정하려면 끝에 `#v1.0.0`처럼 태그를 붙입니다.
+특정 버전으로 고정하려면 끝에 `#v1.1.0`처럼 태그를 붙입니다.
 또는 `Packages/manifest.json`의 `dependencies`에 직접 넣어도 됩니다.
 
 ```json
-"com.teamelarin.worklog": "https://github.com/KimJunKi1024/UnityWorkLog.git#v1.0.0"
+"com.teamelarin.worklog": "https://github.com/KimJunKi1024/UnityWorkLog.git#v1.1.0"
 ```
 
 ## 설정
@@ -54,6 +54,17 @@ https://github.com/KimJunKi1024/UnityWorkLog.git
 - 위쪽에 MD·HTML 위치와 마지막·다음 번호가 나옵니다. 다음 번호의 항목 파일이 이미 있으면 불러옵니다.
 - 번호·날짜·제목과 라벨별 내용을 씁니다. 내용의 첫 줄은 라벨 옆에, 나머지 줄은 하위 항목이 됩니다(하위 항목은 `- `로 시작).
 - **저장**: `entryNNN.md`로 저장 / **검사**: 저장 + 형식·번호 검사(`--dry-run`) / **기록에 추가**: 저장 + MD·HTML에 추가.
+
+## 새 버전 알림
+Git 주소로 설치했다면 에디터를 켤 때 **하루 한 번** 설치한 저장소의 `vX.Y.Z` 태그를 확인합니다(`git ls-remote`, 20초 제한).
+지금 버전보다 높은 태그가 있으면 콘솔에 한 줄을 남기고 알림 창을 띄웁니다.
+
+- **업데이트**: Package Manager로 `주소#새 태그`를 설치합니다 (`Packages/manifest.json`이 함께 바뀜).
+- **이 버전 건너뛰기**: 그 버전은 다시 알리지 않습니다 (더 새 버전이 나오면 다시 알림).
+- **나중에**: 다음 확인 때 다시 알립니다.
+
+언제든 **Tools → 작업 기록 → 업데이트 확인**으로 직접 확인할 수 있습니다. 로컬 폴더(`file:`)로 설치한 경우는 확인하지 않습니다.
+1.1.0보다 이전 버전에는 이 기능이 없으므로 한 번은 직접 태그를 바꿔 올려야 합니다.
 
 ## 명령줄 (Claude Code 등)
 에디터를 켜면 도구가 `Library/WorkLog/Tools/`에 복사됩니다. 프로젝트 폴더에서 실행합니다.
