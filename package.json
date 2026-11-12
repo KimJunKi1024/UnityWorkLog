@@ -1,0 +1,11 @@
+{
+  "name": "com.teamelarin.worklog",
+  "version": "1.0.0",
+  "displayName": "Work Log (작업 기록 도구)",
+  "description": "작업 기록 항목(entryNNN.md)을 구글 드라이브 등의 작업 기록 MD·HTML에 함께 추가하는 도구입니다. 번호가 이어지는지 검사하고, MD·HTML이 없으면 빈 틀로 새로 만듭니다. 메뉴: Tools → 작업 기록 → 기록 창.",
+  "unity": "2021.3",
+  "author": {
+    "name": "Team Elarin"
+  },
+  "keywords": ["worklog", "changelog", "markdown"]
+}

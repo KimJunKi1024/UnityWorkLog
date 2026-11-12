@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ 작업 기록</title>
+<style>:root{
+  --bg:#f4f3ef; --surface:#ffffff; --surface-2:#f8f7f3; --text:#1d2127; --muted:#5d6570; --faint:#8b929c;
+  --border:#e3e1da; --accent:#2b6cb0; --accent-soft:#e8f0fa; --code-bg:#f1efea; --th:#f5f4f0;
+  --high:#c0392b; --mid:#c77c0e; --midlow:#7f8a17; --low:#3b7d4f; --note:#eef3f8; --note-line:#9db7d3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171b; --surface:#1d2026; --surface-2:#22262d; --text:#e6e7e9; --muted:#a6adb8; --faint:#7d8590;
+    --border:#2f343c; --accent:#6aa8eb; --accent-soft:#1f2c3b; --code-bg:#2a2f37; --th:#232830;
+    --high:#ff6b5b; --mid:#f0a640; --midlow:#c4cc52; --low:#6cc48a; --note:#1f2a36; --note-line:#3f5f82;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171b; --surface:#1d2026; --surface-2:#22262d; --text:#e6e7e9; --muted:#a6adb8; --faint:#7d8590;
+  --border:#2f343c; --accent:#6aa8eb; --accent-soft:#1f2c3b; --code-bg:#2a2f37; --th:#232830;
+  --high:#ff6b5b; --mid:#f0a640; --midlow:#c4cc52; --low:#6cc48a; --note:#1f2a36; --note-line:#3f5f82;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:24px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  font-size:15.5px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+.layout{max-width:1240px;margin:0 auto;padding:28px 20px 80px;display:grid;grid-template-columns:268px minmax(0,1fr);column-gap:36px}
+header.doc{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:18px}
+header.doc h1{margin:0;font-size:26px;letter-spacing:-0.02em}
+header.doc .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.theme-btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap}
+
+/* 탭 */
+.tabs{grid-column:1/-1;display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:28px;overflow-x:auto;scrollbar-width:thin}
+.tab{appearance:none;border:0;background:none;color:var(--muted);padding:10px 16px 12px;font:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex:0 0 auto;border-bottom:3px solid transparent;margin-bottom:-1px;text-align:left}
+.tab b{font-size:15px;font-weight:600}
+.tab small{font-size:11.5px;color:var(--faint)}
+.tab:hover{color:var(--text)}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tab[aria-selected="true"] b{font-weight:800}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:6px}
+.panel-wrap{display:contents}
+.panel-wrap[hidden]{display:none}
+
+/* 목차 */
+nav.toc{position:sticky;top:20px;align-self:start;max-height:calc(100vh - 40px);overflow:auto;padding-right:6px;scrollbar-width:thin}
+nav.toc .label{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin:2px 0 10px 10px}
+.toc-list,.toc-list ol{list-style:none;margin:0;padding:0}
+.toc-list>li{margin-bottom:2px}
+.toc-list a{display:flex;align-items:flex-start;gap:10px;padding:7px 10px;border-radius:8px;color:var(--muted);text-decoration:none;line-height:1.45;font-size:13.5px}
+.toc-list a:hover{background:var(--surface);color:var(--text)}
+.toc-list a.active{background:var(--accent-soft);color:var(--text)}
+.toc-list>li>a{font-weight:600;color:var(--text)}
+.tnum{flex:0 0 auto;min-width:26px;height:22px;padding:0 6px;border-radius:6px;background:var(--surface);border:1px solid var(--border);
+  font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);margin-top:-1px}
+.tnum.dot{min-width:8px;width:8px;height:8px;padding:0;border-radius:50%;background:var(--faint);border:0;margin:6px 9px 0}
+.toc-list a.active .tnum{background:var(--accent);color:#fff;border-color:var(--accent)}
+.toc-list ol{margin:2px 0 8px 22px;padding-left:14px;border-left:1px solid var(--border)}
+.toc-list ol a{padding:5px 10px;font-size:13px}
+.tsub{flex:0 0 auto;font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;min-width:30px;margin-top:1px}
+
+/* 본문 카드 */
+main{min-width:0;max-width:880px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 30px 22px;margin-bottom:22px}
+.card>h2{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;margin:0 0 18px;font-size:20px;line-height:1.4;letter-spacing:-0.01em}
+.card>h2 .num{flex:0 0 auto;min-width:36px;height:30px;padding:0 9px;border-radius:8px;background:var(--accent);color:#fff;font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.card>h2 .ttl{flex:1 1 300px}
+.date{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 10px;line-height:1.6}
+.card h3{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:16.5px;margin:30px 0 12px;padding-top:22px;border-top:1px dashed var(--border);line-height:1.45}
+.card>h2+h3,.card>h2+.note+h3{border-top:0;padding-top:0;margin-top:6px}
+.subnum{font-size:12.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 8px}
+.card h3 .ttl{flex:1 1 260px}
+.card h4{font-size:15px;margin:22px 0 8px}
+.card p{margin:10px 0}
+.card ul,.card ol{padding-left:22px;margin:8px 0}
+.card li{margin:5px 0}
+.card li>ul,.card li>ol{margin:4px 0 6px}
+
+/* 라벨: 내용 */
+ul.has-kv{list-style:none;padding-left:0}
+ul.has-kv>li:not(.kv){list-style:disc;margin-left:22px}
+li.kv{display:grid;grid-template-columns:132px minmax(0,1fr);gap:4px 16px;padding:12px 0;margin:0;border-bottom:1px solid var(--border)}
+li.kv:last-child{border-bottom:0}
+li.kv:first-child{padding-top:4px}
+.kv-label{font-size:13px;font-weight:700;color:var(--muted);padding-top:2px;line-height:1.5}
+.kv-body>p:first-child{margin-top:0}
+.kv-body>p:last-child{margin-bottom:0}
+.kv-body>ul,.kv-body>ol{margin-top:4px;margin-bottom:0}
+
+/* 기타 요소 */
+code{font-family:"JetBrains Mono","D2Coding",Consolas,monospace;font-size:.86em;background:var(--code-bg);padding:1px 6px;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;line-height:1.55;margin:12px 0}
+pre code{background:none;padding:0;font-size:12.5px;white-space:pre;word-break:normal;overflow-wrap:normal}
+.note{margin:0 0 16px;padding:12px 16px;background:var(--note);border-left:3px solid var(--note-line);border-radius:0 10px 10px 0;font-size:14px;color:var(--text)}
+.note p{margin:4px 0}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin:12px 0 16px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.6}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+th{background:var(--th);font-weight:700;white-space:nowrap;font-size:12.5px;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;min-width:120px}
+.lv{display:inline-block;min-width:36px;text-align:center;padding:0 9px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;line-height:1.8}
+.lv-high{background:var(--high)}.lv-mid{background:var(--mid)}.lv-midlow{background:var(--midlow)}.lv-low{background:var(--low)}
+strong{font-weight:700}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;padding:18px 16px 60px}
+  nav.toc{position:static;max-height:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 8px;margin-bottom:18px}
+  .card{padding:20px 18px 16px;border-radius:12px}
+  li.kv{grid-template-columns:1fr;gap:2px}
+  header.doc{flex-direction:column;align-items:flex-start}
+}
+@media print{
+  .tabs,nav.toc,.theme-btn{display:none}
+  .layout{display:block;max-width:none}
+  .panel-wrap[hidden]{display:contents}
+  .card{break-inside:avoid-page;border-color:#ccc}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="doc">
+    <div>
+      <h1>작업 기록</h1>
+      <div class="sub">__TITLE__ · 마지막 갱신 __NOW__ · 원본: __SOURCE__</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">다크 모드</button>
+  </header>
+  <div class="tabs" role="tablist"></div>
+  
+
+</div>
+<script>(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var onScroll=null;
+
+  // 현재 읽는 위치를 목차에 표시
+  function spy(panel){
+    if(onScroll)window.removeEventListener('scroll',onScroll);
+    var links={};
+    panel.querySelectorAll('.toc-list a').forEach(function(a){links[a.getAttribute('href').slice(1)]=a;});
+    var targets=[].slice.call(panel.querySelectorAll('main section.card[id], main h3[id]')).filter(function(el){return links[el.id];});
+    var ticking=false;
+    onScroll=function(){
+      if(ticking)return; ticking=true;
+      requestAnimationFrame(function(){
+        ticking=false;
+        var line=window.innerHeight*0.25, cur=targets[0]||null;
+        for(var i=0;i<targets.length;i++){if(targets[i].getBoundingClientRect().top<=line)cur=targets[i];}
+        Object.keys(links).forEach(function(k){links[k].classList.remove('active');});
+        if(!cur)return;
+        links[cur.id].classList.add('active');
+        var sec=cur.closest('section.card');
+        if(sec&&sec!==cur&&links[sec.id])links[sec.id].classList.add('active');
+        var a=links[cur.id], nav=a.closest('nav.toc');
+        if(nav&&getComputedStyle(nav).position==='sticky'){
+          var ar=a.getBoundingClientRect(), nr=nav.getBoundingClientRect();
+          if(ar.top<nr.top||ar.bottom>nr.bottom)nav.scrollTop+=ar.top-nr.top-nr.height/2;
+        }
+      });
+    };
+    window.addEventListener('scroll',onScroll,{passive:true});
+    onScroll();
+  }
+
+  function show(id,push){
+    var found=false;
+    tabs.forEach(function(t){var on=t.dataset.tab===id;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;if(on){found=true;try{t.scrollIntoView({block:'nearest',inline:'center'});}catch(e){}}});
+    if(!found)return false;
+    var shown=null;
+    document.querySelectorAll('[data-panel]').forEach(function(p){p.hidden=p.dataset.panel!==id;if(!p.hidden)shown=p;});
+    try{localStorage.setItem('md-hub-tab',id);}catch(e){}
+    if(push){try{history.replaceState(null,'','#'+id);}catch(e){}}
+    window.scrollTo(0,0);
+    if(shown)spy(shown);
+    return true;
+  }
+
+  tabs.forEach(function(t,i){
+    t.addEventListener('click',function(){show(t.dataset.tab,true);});
+    t.addEventListener('keydown',function(e){
+      var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0; if(!d)return;
+      var n=tabs[(i+d+tabs.length)%tabs.length]; n.focus(); show(n.dataset.tab,true);
+    });
+  });
+
+  // 다른 탭의 항목을 가리키는 링크는 그 탭으로 전환
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href^="#"]'); if(!a)return;
+    var el=document.getElementById(a.getAttribute('href').slice(1)); if(!el)return;
+    var p=el.closest('[data-panel]'); if(p&&p.hidden){show(p.dataset.panel,false);}
+  });
+
+  var h=location.hash.slice(1), saved=null;
+  try{saved=localStorage.getItem('md-hub-tab');}catch(e){}
+  var target=h?document.getElementById(h):null;
+  var targetPanel=target&&target.closest('[data-panel]')?target.closest('[data-panel]').dataset.panel:null;
+  if(!(targetPanel&&show(targetPanel,false))&&!(h&&show(h,false))&&!(saved&&show(saved,false)))if(tabs.length)show(tabs[0].dataset.tab,false);
+  if(target&&targetPanel)setTimeout(function(){target.scrollIntoView();},0);
+
+  var btn=document.getElementById('themeBtn');
+  function cur(){return document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}
+  function label(){btn.textContent=cur()==='dark'?'라이트 모드':'다크 모드';}
+  try{var s=localStorage.getItem('doc-theme');if(s)document.documentElement.setAttribute('data-theme',s);}catch(e){}
+  label();
+  btn.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('doc-theme',n);}catch(e){}label();});
+})();
+</script>
+</body>
+</html>
