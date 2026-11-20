@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -15,7 +16,7 @@ namespace TeamElarin.WorkLog.Editor
     /// 패키지의 파이썬 도구(<c>Tools~</c>)를 찾아 실행합니다.<br/>
     /// 에디터가 켜질 때 도구를 <c>Library/WorkLog/Tools/</c>에 복사해 두어, 명령줄(Claude Code 등)에서도 늘 같은 경로로 실행할 수 있게 합니다.
     /// </summary>
-    /// <remarks>작성일: 2026-11-12</remarks>
+    /// <remarks>작성일: 2026-11-12<br/>수정일: 2026-11-20 (Python 표준 설치 위치 탐색, Python·markdown 확인 함수)</remarks>
     [InitializeOnLoad]
     public static class WorkLogTools
     {
@@ -145,7 +146,7 @@ namespace TeamElarin.WorkLog.Editor
                 string output, error;
                 int code = RunProcess(python, allArguments, projectRoot, out output, out error, -1);
                 if (code == -1 && string.IsNullOrEmpty(output))
-                    error = $"파이썬을 실행하지 못했습니다({python}): {error}\n설정(Tools → 작업 기록 → 설정)에서 Python 경로를 확인하세요.";
+                    error = $"파이썬을 실행하지 못했습니다({python}): {error}\nTools → 작업 기록 → 환경 확인에서 Python을 설치하거나, 설정(Tools → 작업 기록 → 설정)에서 Python 경로를 확인하세요.";
                 return new ProcessResult { ExitCode = code, Output = output, Error = error };
             });
         }
@@ -159,16 +160,10 @@ namespace TeamElarin.WorkLog.Editor
             if (!refresh && !string.IsNullOrEmpty(_detectedPython))
                 return _detectedPython;
 
-            string[] candidates = Application.platform == RuntimePlatform.WindowsEditor ? WINDOWS_PYTHON_CANDIDATES : UNIX_PYTHON_CANDIDATES;
-            string probe = Quote("import sys;print(sys.version_info[0]*100+sys.version_info[1])");
+            List<string> candidates = GetPythonCandidates();
             foreach (string candidate in candidates)
             {
-                string output, error;
-                if (RunProcess(candidate, "-I -c " + probe, WorkLogSettings.ProjectRoot, out output, out error, PYTHON_PROBE_TIMEOUT_MS) != 0)
-                    continue;
-
-                int version;
-                if (int.TryParse(output.Trim(), out version) && version >= PYTHON_MIN_VERSION)
+                if (IsUsablePython(candidate))
                 {
                     _detectedPython = candidate;
                     return candidate;
@@ -177,6 +172,65 @@ namespace TeamElarin.WorkLog.Editor
 
             _detectedPython = null;
             return candidates[0];
+        }
+
+        /// <summary>
+        /// 이 Python이 실행되고 3.8 이상인지.
+        /// </summary>
+        public static bool IsUsablePython(string python)
+        {
+            if (string.IsNullOrWhiteSpace(python))
+                return false;
+            string output, error;
+            string probe = Quote("import sys;print(sys.version_info[0]*100+sys.version_info[1])");
+            if (RunProcess(python, "-I -c " + probe, WorkLogSettings.ProjectRoot, out output, out error, PYTHON_PROBE_TIMEOUT_MS) != 0)
+                return false;
+
+            int version;
+            return int.TryParse(output.Trim(), out version) && version >= PYTHON_MIN_VERSION;
+        }
+
+        /// <summary>
+        /// 이 Python에 markdown 패키지가 설치돼 있는지.
+        /// </summary>
+        public static bool HasMarkdown(string python)
+        {
+            string output, error;
+            return RunProcess(python, "-c " + Quote("import markdown"), WorkLogSettings.ProjectRoot, out output, out error, PYTHON_PROBE_TIMEOUT_MS) == 0;
+        }
+
+        /// <summary>
+        /// 자동 탐색할 Python 후보 (이름 → Windows 표준 설치 위치의 전체 경로).
+        /// 표준 위치도 보므로 Python을 설치한 직후 Unity를 다시 켜지 않아도 찾습니다.
+        /// </summary>
+        public static List<string> GetPythonCandidates()
+        {
+            if (Application.platform != RuntimePlatform.WindowsEditor)
+                return new List<string>(UNIX_PYTHON_CANDIDATES);
+
+            var candidates = new List<string>(WINDOWS_PYTHON_CANDIDATES);
+            // python.org·winget 설치 위치 (새 버전 먼저)
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string[] roots =
+            {
+                Path.Combine(localAppData, "Programs", "Python"),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            };
+            foreach (string root in roots)
+            {
+                if (string.IsNullOrEmpty(root) || !Directory.Exists(root))
+                    continue;
+                string[] dirs = Directory.GetDirectories(root, "Python3*");
+                Array.Sort(dirs, (a, b) => string.CompareOrdinal(b, a));
+                foreach (string dir in dirs)
+                {
+                    string exe = Path.Combine(dir, "python.exe");
+                    if (File.Exists(exe) && !candidates.Contains(exe))
+                        candidates.Add(exe);
+                }
+            }
+            return candidates;
         }
 
         /// <summary>
@@ -195,8 +249,8 @@ namespace TeamElarin.WorkLog.Editor
 
         #region [ 내부 도우미 (Helpers) ]
 
-        // 프로세스를 실행하고 끝날 때까지 기다림. 시작하지 못하거나 시간 초과면 -1
-        private static int RunProcess(string fileName, string arguments, string workingDirectory, out string output, out string error, int timeoutMs)
+        // 프로세스를 실행하고 끝날 때까지 기다림. 시작하지 못하거나 시간 초과면 -1 (timeoutMs가 0 이하면 끝까지 기다림)
+        internal static int RunProcess(string fileName, string arguments, string workingDirectory, out string output, out string error, int timeoutMs)
         {
             output = string.Empty;
             error = string.Empty;

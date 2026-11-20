@@ -17,6 +17,11 @@
 pip install markdown
 ```
 
+둘 중 하나가 없으면 에디터를 켤 때 안내 창이 뜹니다.
+- Python이 없으면 **[Python 설치]**: Windows에서 winget이 있으면 새 창에서 설치하고, 없으면 다운로드 페이지를 엽니다. 표준 위치에 설치하면 Unity를 다시 켜지 않아도 찾습니다.
+- markdown이 없으면 **[markdown 설치]**: `python -m pip install markdown`을 실행하고 결과를 알려 줍니다(권한 문제면 `--user`로 다시 시도).
+- **다시 묻지 않기**를 고르면 자동 안내는 끕니다. 언제든 **Tools → 작업 기록 → 환경 확인**으로 직접 확인할 수 있습니다.
+
 ## 설치
 Unity에서 **Window → Package Manager → 왼쪽 위 + → Add package from git URL…** 에 다음을 넣습니다.
 
